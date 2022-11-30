@@ -22,7 +22,7 @@ namespace MazeSolver
         private HashSet<ButtonPosition> visitedPaths;
         private ButtonPosition Start;
         private ButtonPosition Goal;
-        private new readonly bool[] Location;
+        private new readonly bool[] WalledPath;
         private readonly bool[] isLocationVisited;
         private IDictionary<Button, List<int>> tree;
         public MazeForm()
@@ -32,7 +32,7 @@ namespace MazeSolver
             visitedPaths = new HashSet<ButtonPosition>();
             Goal = null;
             InitializeComponent();
-            Location = new bool[mazeLayout.RowCount * mazeLayout.ColumnCount];
+            WalledPath = new bool[mazeLayout.RowCount * mazeLayout.ColumnCount];
             isLocationVisited = new bool[mazeLayout.RowCount * mazeLayout.ColumnCount];
             InitializeMazeLayout();
             AssignClickEvent();
@@ -57,7 +57,7 @@ namespace MazeSolver
                         column = mazeLayout.GetPositionFromControl(_button).Column;
                         BFQueue.Enqueue(new ButtonPosition(_button, row, column));
                         Start = new ButtonPosition(_button, row, column);
-                        Location[(mazeLayout.RowCount * row) + column] = true;
+                        WalledPath[(mazeLayout.RowCount * row) + column] = true;
                         Debug.WriteLine("Start: " + BFQueue.First().GetButtonPosition());
                     }
                     else
@@ -90,17 +90,17 @@ namespace MazeSolver
                 {
                     row = mazeLayout.GetPositionFromControl(button).Row;
                     column = mazeLayout.GetPositionFromControl(button).Column;
-                    Location[(mazeLayout.RowCount * row) + column] = false;
+                    WalledPath[(mazeLayout.RowCount * row) + column] = false;
                     button.BackColor = Color.White;
-                    Debug.WriteLine("Location: " + ((mazeLayout.RowCount * row) + column) + " = " + Location[(mazeLayout.RowCount * row) + column]);
+                    Debug.WriteLine("Location: " + ((mazeLayout.RowCount * row) + column) + " = " + WalledPath[(mazeLayout.RowCount * row) + column]);
                 }
                 else
                 {
                     row = mazeLayout.GetPositionFromControl(button).Row;
                     column = mazeLayout.GetPositionFromControl(button).Column;
-                    Location[(mazeLayout.RowCount * row) + column] = true;
+                    WalledPath[(mazeLayout.RowCount * row) + column] = true;
                     button.BackColor = Color.Gray;
-                    Debug.WriteLine("Location: " + ((mazeLayout.RowCount*row)+column) + " = " + Location[(mazeLayout.RowCount*row) + column]);
+                    Debug.WriteLine("Location: " + ((mazeLayout.RowCount*row)+column) + " = " + WalledPath[(mazeLayout.RowCount*row) + column]);
                 }
             }
             else if(e.Button == MouseButtons.Right)
@@ -191,7 +191,7 @@ namespace MazeSolver
                 List<int> neighbours = new List<int> { searchUp, searchDown, searchLeft, searchRight };
                 for(int i = 0; i < neighbours.Count; i++)
                 {
-                    if (Location[neighbours[i]] == true)
+                    if (WalledPath[neighbours[i]] == true)
                     {
                         Debug.WriteLine("removed: " + neighbours[i] + ", ");
                         neighbours.Remove(neighbours[i]);
@@ -234,7 +234,7 @@ namespace MazeSolver
                     }
                     else if (paths != Goal.GetPosition(mazeLayout.ColumnCount))
                     {
-                        if (isLocationVisited[paths] == false && Location[paths] == false)
+                        if (isLocationVisited[paths] == false && WalledPath[paths] == false)
                         {
                             buttons.BackColor = Color.Blue;
                             BFQueue.Enqueue(new ButtonPosition(buttons, row, col));
@@ -244,10 +244,21 @@ namespace MazeSolver
                     }
                     else
                     {
-                        Debug.WriteLine("Ended at while!");
+                        Debug.WriteLine("Found " + paths +"!");
+                        Debug.Write("\n");
+                        BFQueue.Enqueue(new ButtonPosition(buttons, row, col));
+                        foreach (var line in visitedPaths.Reverse())
+                        {
+                            line.GetButton().BackColor = Color.Green;
+                            Debug.Write(line.GetPosition(mazeLayout.ColumnCount) + ", ");
+                        }
+                        Debug.Write("\n");
+                        foreach(var queue in BFQueue)
+                        {
+                            Debug.Write(queue.GetPosition(mazeLayout.ColumnCount) + ", ");
+                        }
                         return;
                     }
-                    Debug.Write("X"+paths + ", ");
                 }
                 Debug.Write("\n");
                 Debug.WriteLine(BFQueue.First().GetButtonPosition());
